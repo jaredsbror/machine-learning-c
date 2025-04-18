@@ -6,47 +6,68 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <dirent.h>
+#include <unistd.h>
 
 
-void convert() {
+void convert(const char *model) {
     // Prepare your command string
     const char *text = "Hello, this is Piper speaking.";
-    const char *model = "en_GB-somevoice.onnx";
     const char *output = "output.wav";
     char command[512];
 
-    // Build the command: echo "text" | piper --model ... --output_file ...
-    snprintf(command, sizeof(command),
-                "echo \"%s\" | ./piper --model %s --output_file %s",
-                text, model, output);
+    DIR *dir = opendir("input");
+    struct dirent *entry;
 
-    // Run the command
-    int result = system(command);
-
-    if (result == 0) {
-        // Success: output.wav now contains the spoken text
-        printf("Success with Piper\n");
-    } else {
-        // Handle error
-        printf("Error with Piper\n");
+    if (!dir) {
+        perror("opendir");
+        return;
     }
+
+    while ((entry = readdir(dir)) != NULL) {
+        // Skip "." and ".."
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+        printf("%s\n", entry->d_name);
+    }
+
+    closedir(dir);
+
+    // // Build the command: echo "text" | piper --model ... --output_file ...
+    // snprintf(command, sizeof(command),
+    //             "echo \"%s\" | piper-tts --model %s --output_file %s",
+    //             text, model, output);
+
+    // // Run the command
+    // int result = system(command);
+
+    // if (result == 0) {
+    //     // Success: output.wav now contains the spoken text
+    //     printf("Success with Piper\n");
+    // } else {
+    //     // Handle error
+    //     printf("Error with Piper\n");
+    // }
 }
 
 
 void run() {
-    char voice[200] = "null";
+    char input[200] = "null";
+
     print_voices();
     while (1) {
         printf("Please enter the voice that you would like to use. Otherwise type 'exit'.\n"
                 "Remember to type it exactly as it is listed (i.e. 'jenny_dioco (medium)') with no extra spaces\n");
-        fgets(voice, sizeof(voice), stdin);
-        voice[strcspn(voice, "\n")] = 0; // Strip newline
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = 0; // Strip newline
+        const char *filepath = get_path_from_voice(input);
 
-        if (compare_strings_case_insensitive(voice, "exit")) {
+        if (compare_strings_case_insensitive(input, "exit")) {
             return;
-        } else if (!compare_strings_case_insensitive(get_path_from_voice(voice), "null")) {
-            printf("Valid input: %s\n", voice);
-            convert();
+        } else if (!compare_strings_case_insensitive(filepath, "null")) {
+            printf("Valid input: %s\n", input);
+            convert(filepath);
+            return;
         }
         printf("Invalid input. Please enter a valid voice or 'exit'\n\n");
     }
@@ -80,8 +101,17 @@ void welcome() {
         );
 }
 
+void print_working_directory() {
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        printf("Current working directory: %s\n", cwd);
+    } else {
+        perror("getcwd");
+    }
+}
 
 int main(int argc, char *argv[]) {
+    print_working_directory();
     welcome();
     menu();
     printf("See you later!\n");

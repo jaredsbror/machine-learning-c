@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "filepath.h": "c"
+        "filepath.h": "c",
+        "stdlib.h": "c"
     }
 }
