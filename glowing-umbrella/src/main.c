@@ -10,10 +10,12 @@
 
 
 void run() {
-    char src_addr[200] = "null";
-    char dest_addr[200] = "null";
+    char filepath[200] = "null";
 
-
+    while (true) {
+        print_voices();
+        break;
+    }
     
 }
 
@@ -74,4 +76,4 @@ int main(int argc, char *argv[]) {
 //         printf("Error with Piper\n");
 //     }
 //     return 0;
-// }
+}

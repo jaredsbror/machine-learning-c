@@ -1,3 +1,4 @@
+#include "helpers.h"
 typedef struct {
     const char *language_code;
     const char *voice_name;
@@ -185,7 +186,19 @@ PiperVoice piper_voices[] = {
 
 const int piper_voices_count = sizeof(piper_voices) / sizeof(piper_voices[0]);
 
+void print_voices() {
+    for (int i = 0; i < piper_voices_count; i++) {
+        printf("lang=\'%s\', voice=\'%s\'\n", piper_voices[i].language_code, piper_voices[i].voice_name);
+    }
+}
 
-char* get_url_from_voice(char *voice) {
-    
+const char* get_path_from_voice(const char *voice) {
+    // Iterate over piper_voices and determine the index of the voice
+    // Otherwise return "null"
+    for (int i = 0; i < piper_voices_count; i++) {
+        if (compare_strings_case_insensitive(voice, piper_voices[i].voice_name)) {
+            return piper_voices[i].filepath;
+        }
+    }
+    return "null";
 }
