@@ -28,9 +28,6 @@ PiperVoice piper_voices[] = {
     { "de_DE", "mls (medium)", "piper/piper-voices/de/de_DE/mls/medium/de_DE-mls-medium.onnx" },
     { "de_DE", "pavoque (low)", "piper/piper-voices/de/de_DE/pavoque/low/de_DE-pavoque-low.onnx" },
     { "de_DE", "ramona (low)", "piper/piper-voices/de/de_DE/ramona/low/de_DE-ramona-low.onnx" },
-    { "de_DE", "thorsten (low)", "piper/piper-voices/de/de_DE/thorsten/low/de_DE-thorsten-low.onnx" },
-    { "de_DE", "thorsten (medium)", "piper/piper-voices/de/de_DE/thorsten/medium/de_DE-thorsten-medium.onnx" },
-    { "de_DE", "thorsten (high)", "piper/piper-voices/de/de_DE/thorsten/high/de_DE-thorsten-high.onnx" },
     { "de_DE", "thorsten_emotional (medium)", "piper/piper-voices/de/de_DE/thorsten_emotional/medium/de_DE-thorsten_emotional-medium.onnx" },
 
     // Greek (el_GR)
@@ -41,8 +38,6 @@ PiperVoice piper_voices[] = {
     { "en_GB", "alan (medium)", "piper/piper-voices/en/en_GB/alan/medium/en_GB-alan-medium.onnx" },
     { "en_GB", "alba (medium)", "piper/piper-voices/en/en_GB/alba/medium/en_GB-alba-medium.onnx" },
     { "en_GB", "aru (medium)", "piper/piper-voices/en/en_GB/aru/medium/en_GB-aru-medium.onnx" },
-    { "en_GB", "cori (medium)", "piper/piper-voices/en/en_GB/cori/medium/en_GB-cori-medium.onnx" },
-    { "en_GB", "cori (high)", "piper/piper-voices/en/en_GB/cori/high/en_GB-cori-high.onnx" },
     { "en_GB", "jenny_dioco (medium)", "piper/piper-voices/en/en_GB/jenny_dioco/medium/en_GB-jenny_dioco-medium.onnx" },
     { "en_GB", "northern_english_male (medium)", "piper/piper-voices/en/en_GB/northern_english_male/medium/en_GB-northern_english_male-medium.onnx" },
     { "en_GB", "semaine (medium)", "piper/piper-voices/en/en_GB/semaine/medium/en_GB-semaine-medium.onnx" },
@@ -63,17 +58,8 @@ PiperVoice piper_voices[] = {
     { "en_US", "kristin (medium)", "piper/piper-voices/en/en_US/kristin/medium/en_US-kristin-medium.onnx" },
     { "en_US", "kusal (medium)", "piper/piper-voices/en/en_US/kusal/medium/en_US-kusal-medium.onnx" },
     { "en_US", "l2arctic (medium)", "piper/piper-voices/en/en_US/l2arctic/medium/en_US-l2arctic-medium.onnx" },
-    { "en_US", "lessac (low)", "piper/piper-voices/en/en_US/lessac/low/en_US-lessac-low.onnx" },
-    { "en_US", "lessac (medium)", "piper/piper-voices/en/en_US/lessac/medium/en_US-lessac-medium.onnx" },
-    { "en_US", "lessac (high)", "piper/piper-voices/en/en_US/lessac/high/en_US-lessac-high.onnx" },
-    { "en_US", "libritts (high)", "piper/piper-voices/en/en_US/libritts/high/en_US-libritts-high.onnx" },
     { "en_US", "libritts_r (medium)", "piper/piper-voices/en/en_US/libritts_r/medium/en_US-libritts_r-medium.onnx" },
-    { "en_US", "ljspeech (medium)", "piper/piper-voices/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx" },
-    { "en_US", "ljspeech (high)", "piper/piper-voices/en/en_US/ljspeech/high/en_US-ljspeech-high.onnx" },
     { "en_US", "norman (medium)", "piper/piper-voices/en/en_US/norman/medium/en_US-norman-medium.onnx" },
-    { "en_US", "ryan (low)", "piper/piper-voices/en/en_US/ryan/low/en_US-ryan-low.onnx" },
-    { "en_US", "ryan (medium)", "piper/piper-voices/en/en_US/ryan/medium/en_US-ryan-medium.onnx" },
-    { "en_US", "ryan (high)", "piper/piper-voices/en/en_US/ryan/high/en_US-ryan-high.onnx" },
 
     // Spanish (es_ES/es_MX)
     { "es_ES", "carlfm (x_low)", "piper/piper-voices/es/es_ES/carlfm/x_low/es_ES-carlfm-x_low.onnx" },
