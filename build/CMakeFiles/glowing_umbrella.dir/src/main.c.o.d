@@ -48,4 +48,5 @@ CMakeFiles/glowing_umbrella.dir/src/main.c.o: \
  /usr/include/unistd.h /usr/include/bits/posix_opt.h \
  /usr/include/bits/environments.h /usr/include/bits/confname.h \
  /usr/include/bits/getopt_posix.h /usr/include/bits/getopt_core.h \
- /usr/include/bits/unistd_ext.h
+ /usr/include/bits/unistd_ext.h /usr/include/sys/stat.h \
+ /usr/include/bits/stat.h /usr/include/bits/struct_stat.h

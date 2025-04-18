@@ -8,46 +8,48 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 
 void convert(const char *model) {
-    // Prepare your command string
-    const char *text = "Hello, this is Piper speaking.";
-    const char *output = "output.wav";
-    char command[512];
+    char command[1024];
+    
+    // Create output directory if it doesn't exist
+    mkdir("../output", 0777);
 
-    DIR *dir = opendir("input");
-    struct dirent *entry;
-
+    DIR *dir = opendir("../input");
     if (!dir) {
         perror("opendir");
         return;
     }
 
+    struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
-        // Skip "." and ".."
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+        char *filename = entry->d_name;
+        if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0)
             continue;
-        printf("%s\n", entry->d_name);
+
+        // Strip file extension (e.g., "input.txt" → "input")
+        char basename[256];
+        strncpy(basename, filename, sizeof(basename));
+        char *dot = strrchr(basename, '.');
+        if (dot) *dot = '\0';
+
+        // Build command
+        snprintf(command, sizeof(command),
+            "piper-tts --model %s --output_file ../output/%s.wav < ../input/%s",
+            model, basename, filename);
+
+        // Run command
+        int result = system(command);
+        if (result == 0) {
+            printf("Successfully converted %s\n", filename);
+        } else {
+            printf("Failed to convert %s\n", filename);
+        }
     }
 
     closedir(dir);
-
-    // // Build the command: echo "text" | piper --model ... --output_file ...
-    // snprintf(command, sizeof(command),
-    //             "echo \"%s\" | piper-tts --model %s --output_file %s",
-    //             text, model, output);
-
-    // // Run the command
-    // int result = system(command);
-
-    // if (result == 0) {
-    //     // Success: output.wav now contains the spoken text
-    //     printf("Success with Piper\n");
-    // } else {
-    //     // Handle error
-    //     printf("Error with Piper\n");
-    // }
 }
 
 
