@@ -1,4 +1,5 @@
 #include "filepath.h"
+#include "tts.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -30,18 +31,20 @@ void run() {
     char dest_addr[200] = "null";
 
     while (true) {
-        printf("What is the source file path? (e.g. /home/desktop/item.txt)");
+        printf("What is the source file path? (e.g. /home/desktop/item.txt)\n");
         scanf("%s", src_addr);
         if (filepath_is_valid(src_addr) && filepath_contains_txt(src_addr, ".txt")) break;
         // else printf("Invalid path \"%s\"", src_addr);
     }
 
     while (true) {
-        printf("What is the destination directory? (e.g. /home/desktop/)");
+        printf("What is the destination directory? (e.g. /home/desktop/)\n");
         scanf("%s", dest_addr);
-        if (filepath_is_valid(dest_addr) && filepath_contains_txt(src_addr, ".txt")) break;
+        if (filepath_is_valid(dest_addr)) break;
         // else printf("Invalid path \"%s\"", dest_addr);
     }
+
+    
 }
 
 
@@ -62,7 +65,7 @@ void menu() {
             printf("See you later!\n");
             return;
         } else {
-            printf("Oops! Haven't heard of that one. Please use either \"run\" or \"exit\"\n");
+            printf("Oops! Haven't heard that one in a while. Please use either \"run\" or \"exit\"\n");
         }
     }
 }
@@ -75,7 +78,30 @@ void welcome() {
 
 
 int main(int argc, char *argv[]) {
-    welcome();
-    menu();
+    // welcome();
+    // menu();
+    // return 0;
+
+    // Prepare your command string
+    const char *text = "Hello, this is Piper speaking.";
+    const char *model = "en_GB-somevoice.onnx";
+    const char *output = "output.wav";
+    char command[512];
+
+    // Build the command: echo "text" | piper --model ... --output_file ...
+    snprintf(command, sizeof(command),
+             "echo \"%s\" | ./piper --model %s --output_file %s",
+             text, model, output);
+
+    // Run the command
+    int result = system(command);
+
+    if (result == 0) {
+        // Success: output.wav now contains the spoken text
+        printf("Success with Piper\n");
+    } else {
+        // Handle error
+        printf("Error with Piper\n");
+    }
     return 0;
 }
