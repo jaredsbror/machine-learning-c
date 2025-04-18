@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/joshua/glowing-umbrella-c/glowing-umbrella
+CMAKE_SOURCE_DIR = /home/joshua/glowing-umbrella/glowing-umbrella
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/joshua/glowing-umbrella-c/glowing-umbrella/build
+CMAKE_BINARY_DIR = /home/joshua/glowing-umbrella/glowing-umbrella/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/joshua/glowing-umbrella-c/glowing-umbrella/build/CMakeFiles /home/joshua/glowing-umbrella-c/glowing-umbrella/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/joshua/glowing-umbrella/glowing-umbrella/build/CMakeFiles /home/joshua/glowing-umbrella/glowing-umbrella/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/joshua/glowing-umbrella-c/glowing-umbrella/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/joshua/glowing-umbrella/glowing-umbrella/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -117,24 +117,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named glowing_umbrella_c
+# Target rules for targets named glowing_umbrella
 
 # Build rule for target.
-glowing_umbrella_c: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 glowing_umbrella_c
-.PHONY : glowing_umbrella_c
+glowing_umbrella: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 glowing_umbrella
+.PHONY : glowing_umbrella
 
 # fast build rule for target.
-glowing_umbrella_c/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/glowing_umbrella_c.dir/build.make CMakeFiles/glowing_umbrella_c.dir/build
-.PHONY : glowing_umbrella_c/fast
+glowing_umbrella/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/glowing_umbrella.dir/build.make CMakeFiles/glowing_umbrella.dir/build
+.PHONY : glowing_umbrella/fast
 
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
 # target to build an object file
 src/main.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/glowing_umbrella_c.dir/build.make CMakeFiles/glowing_umbrella_c.dir/src/main.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/glowing_umbrella.dir/build.make CMakeFiles/glowing_umbrella.dir/src/main.c.o
 .PHONY : src/main.c.o
 
 src/main.i: src/main.c.i
@@ -142,7 +142,7 @@ src/main.i: src/main.c.i
 
 # target to preprocess a source file
 src/main.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/glowing_umbrella_c.dir/build.make CMakeFiles/glowing_umbrella_c.dir/src/main.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/glowing_umbrella.dir/build.make CMakeFiles/glowing_umbrella.dir/src/main.c.i
 .PHONY : src/main.c.i
 
 src/main.s: src/main.c.s
@@ -150,7 +150,7 @@ src/main.s: src/main.c.s
 
 # target to generate assembly for a file
 src/main.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/glowing_umbrella_c.dir/build.make CMakeFiles/glowing_umbrella_c.dir/src/main.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/glowing_umbrella.dir/build.make CMakeFiles/glowing_umbrella.dir/src/main.c.s
 .PHONY : src/main.c.s
 
 # Help Target
@@ -161,7 +161,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... glowing_umbrella_c"
+	@echo "... glowing_umbrella"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
