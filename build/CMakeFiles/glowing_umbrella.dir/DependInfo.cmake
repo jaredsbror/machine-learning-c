@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/joshua/glowing-umbrella/glowing-umbrella/src/main.c" "CMakeFiles/glowing_umbrella.dir/src/main.c.o" "gcc" "CMakeFiles/glowing_umbrella.dir/src/main.c.o.d"
+  "/home/joshua/glowing-umbrella/src/main.c" "CMakeFiles/glowing_umbrella.dir/src/main.c.o" "gcc" "CMakeFiles/glowing_umbrella.dir/src/main.c.o.d"
   "" "glowing_umbrella" "gcc" "CMakeFiles/glowing_umbrella.dir/link.d"
   )
 

@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/joshua/glowing-umbrella/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
