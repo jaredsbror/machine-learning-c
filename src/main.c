@@ -10,6 +10,80 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+// Helper to get the base filename (without path and .txt extension)
+void get_base_filename(const char* filename, char* base, size_t base_size) {
+    const char *slash = strrchr(filename, '/');
+    const char *start = slash ? slash + 1 : filename;
+    strncpy(base, start, base_size - 1);
+    base[base_size - 1] = '\0';
+    char *dot = strrchr(base, '.');
+    if (dot && strcmp(dot, ".txt") == 0) *dot = '\0';
+}
+
+// Split a longer text file into chunks
+void split_txt_file() {
+    char filename[256];
+    char fullpath[512];
+    char base[256];
+
+    // Prompt for file name (accept spaces)
+    while (1) {
+        printf("Enter the name of the .txt file in the input folder? (with NO SPACES in the file name!): ");
+        if (!fgets(filename, sizeof(filename), stdin)) continue;
+        filename[strcspn(filename, "\n")] = 0; // Remove newline
+        if (strstr(filename, ".txt") == NULL) {
+            printf("File must have a .txt extension. Please make sure to type .txt\n");
+            continue;
+        }
+        snprintf(fullpath, sizeof(fullpath), "../input/%s", filename);
+        if (filepath_is_valid(fullpath)) break;
+        printf("File not found. Try again.\n");
+    }
+
+    // Prompt for number of words per file
+    int words_per_file = (int)get_numerical_input_in_range("How many words per split file?", 1, 1000000);
+
+    // Open input file
+    FILE *in = fopen(fullpath, "r");
+    if (!in) {
+        printf("Could not open file.\n");
+        return;
+    }
+
+    get_base_filename(filename, base, sizeof(base));
+
+    int file_idx = 1, word_count = 0;
+    char word[128];
+    char outname[512];
+    FILE *out = NULL;
+
+    while (fscanf(in, "%127s", word) == 1) {
+        if (word_count % words_per_file == 0) {
+            if (out) fclose(out);
+            snprintf(outname, sizeof(outname), "../input/%s__%d.txt", base, file_idx++);
+            out = fopen(outname, "w");
+            if (!out) {
+                printf("Failed to create output file: %s\n", outname);
+                fclose(in);
+                return;
+            }
+        }
+        fprintf(out, "%s", word);
+        word_count++;
+        // Add a space unless it's the last word in the file or chunk
+        if (word_count % words_per_file != 0) {
+            fprintf(out, " ");
+        } else {
+            fprintf(out, "\n");
+        }
+    }
+    if (out) fclose(out);
+    fclose(in);
+
+    printf("Done splitting '%s' into %d-word files.\n", filename, words_per_file);
+}
+
+
 void generate_voice_samples() {
     const char* input_file = "../input/DO NOT DELETE/DO NOT DELETE.txt";
     char command[4096];
@@ -36,16 +110,11 @@ void generate_voice_samples() {
         // Skip non-English voices
         if (strncmp(piper_voices[i].language_code, "en", 2) != 0) continue;
         
-        const char* voice_name = piper_voices[i].voice_name;
         const char* model_path = piper_voices[i].filepath;
 
-        // Sanitize voice name for filename
-        char sanitized_name[256];
-        strncpy(sanitized_name, voice_name, sizeof(sanitized_name));
-        for (char *c = sanitized_name; *c; c++) {
-            if (*c == ' ' || *c == '(' || *c == ')') *c = '_';
-            else if (*c == '/') *c = '-';
-        }
+        // Get base model name from filepath
+        char base_model[256];
+        get_base_filename(model_path, base_model, sizeof(base_model));
 
         // Generate all parameter combinations
         for (int ls = 0; ls < num_scales; ls++) {
@@ -54,7 +123,7 @@ void generate_voice_samples() {
                 char output_file[256];
                 snprintf(output_file, sizeof(output_file),
                     "../output/samples/%s_ls%.2f_ss%.2f.wav",
-                    sanitized_name, length_scales[ls], sentence_silences[ss]);
+                    base_model, length_scales[ls], sentence_silences[ss]);
 
                 // Build command
                 snprintf(command, sizeof(command),
@@ -75,37 +144,34 @@ void generate_voice_samples() {
 }
 
 
-
 void convert(const char *model) {
-    char command[2048];  // Increased buffer size for safety
-
+    char command[2048];
     DIR *dir = opendir("../input");
     if (!dir) {
         perror("opendir");
         return;
     }
 
-    double length_scale = 1;
-    length_scale = get_numerical_input_in_range("Please enter the scale (<1.0 = faster, >1.0 = slower)", 0.1, 2);
-    double sentence_silence = 0.2;
-    sentence_silence = get_numerical_input_in_range("Please enter the pause between sentences (in seconds)", 0.1, 2);
- 
-    // Create output directory if it doesn't exist
+    double length_scale = get_numerical_input_in_range(
+        "Please enter the scale (<1.0 = faster, >1.0 = slower)", 0.1, 2
+    );
+    double sentence_silence = get_numerical_input_in_range(
+        "Please enter the pause between sentences (in seconds)", 0.1, 2
+    );
+
+    // Create output directory
     mkdir("../output", 0777);
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
         char *filename = entry->d_name;
-        if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0)
-            continue;
+        if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) continue;
 
-        // Strip file extension
+        // Get base filename
         char basename[256];
-        strncpy(basename, filename, sizeof(basename));
-        char *dot = strrchr(basename, '.');
-        if (dot) *dot = '\0';
+        get_base_filename(filename, basename, sizeof(basename));
 
-        // Build command with proper quoting for spaces
+        // Build command
         snprintf(command, sizeof(command),
             "piper-tts --model \"%s\" --length_scale %f --sentence_silence %f "
             "--output_file \"../output/%s.wav\" < \"../input/%s\"",
@@ -113,11 +179,15 @@ void convert(const char *model) {
 
         // Run command
         int result = system(command);
-        if (result == 0) printf("Successfully converted '%s'\n", filename);
-        else printf("Failed to convert '%s'\n", filename);
+        if (result == 0) {
+            printf("Successfully converted '%s'\n", filename);
+        } else {
+            printf("Failed to convert '%s'\n", filename);
+        }
     }
     closedir(dir);
 }
+
 
 
 
@@ -152,7 +222,8 @@ void menu() {
         printf("Options (not case-sensitive)\n"
                 "1) Run\n"
                 "2) Generate (samples)\n"
-                "2) Exit\n");
+                "3) Split (text files)\n"
+                "4) Exit\n");
         scanf("%s", command);
         if (compare_strings_case_insensitive(command, "Run")) {
             printf("Running Glowing Umbrella\n");
@@ -160,6 +231,8 @@ void menu() {
             return;
         } else if (compare_strings_case_insensitive(command, "Generate")) {
             generate_voice_samples();
+        } else if (compare_strings_case_insensitive(command, "Split")) {
+            split_txt_file();
         } else if (compare_strings_case_insensitive(command, "Exit")) {
             return;
         } else {
