@@ -10,6 +10,71 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+void generate_voice_samples() {
+    const char* input_file = "../input/DO NOT DELETE/DO NOT DELETE.txt";
+    char command[4096];
+    
+    // Verify input file exists
+    FILE *fp = fopen(input_file, "r");
+    if (!fp) {
+        printf("Error: Input file '%s' not found!\n", input_file);
+        return;
+    }
+    fclose(fp);
+
+    // Create output directory
+    mkdir("../output/samples", 0777);
+
+    // Voice parameters
+    double length_scales[] = {0.5, 0.75, 1.00};
+    double sentence_silences[] = {0.05, 0.1, 0.2};
+    const int num_scales = sizeof(length_scales)/sizeof(length_scales[0]);
+    const int num_silences = sizeof(sentence_silences)/sizeof(sentence_silences[0]);
+
+    // Iterate through all English voices
+    for (int i = 0; i < piper_voices_count; i++) {
+        // Skip non-English voices
+        if (strncmp(piper_voices[i].language_code, "en", 2) != 0) continue;
+        
+        const char* voice_name = piper_voices[i].voice_name;
+        const char* model_path = piper_voices[i].filepath;
+
+        // Sanitize voice name for filename
+        char sanitized_name[256];
+        strncpy(sanitized_name, voice_name, sizeof(sanitized_name));
+        for (char *c = sanitized_name; *c; c++) {
+            if (*c == ' ' || *c == '(' || *c == ')') *c = '_';
+            else if (*c == '/') *c = '-';
+        }
+
+        // Generate all parameter combinations
+        for (int ls = 0; ls < num_scales; ls++) {
+            for (int ss = 0; ss < num_silences; ss++) {
+                // Build output filename
+                char output_file[256];
+                snprintf(output_file, sizeof(output_file),
+                    "../output/samples/%s_ls%.2f_ss%.2f.wav",
+                    sanitized_name, length_scales[ls], sentence_silences[ss]);
+
+                // Build command
+                snprintf(command, sizeof(command),
+                    "piper-tts --model \"%s\" --length_scale %.2f --sentence_silence %.2f "
+                    "--output_file \"%s\" < \"%s\"",
+                    model_path, length_scales[ls], sentence_silences[ss],
+                    output_file, input_file);
+
+                // Execute and show status
+                printf("Generating: %s\n", output_file);
+                int result = system(command);
+                if (result != 0) {
+                    printf("ERROR generating %s\n", output_file);
+                }
+            }
+        }
+    }
+}
+
+
 
 void convert(const char *model) {
     char command[2048];  // Increased buffer size for safety
@@ -86,13 +151,16 @@ void menu() {
         // Menu options
         printf("Options (not case-sensitive)\n"
                 "1) Run\n"
+                "2) Generate (samples)\n"
                 "2) Exit\n");
         scanf("%s", command);
-        if (compare_strings_case_insensitive(command, "Run") == true) {
+        if (compare_strings_case_insensitive(command, "Run")) {
             printf("Running Glowing Umbrella\n");
             run();
             return;
-        } else if (compare_strings_case_insensitive(command, "Exit") == true) {
+        } else if (compare_strings_case_insensitive(command, "Generate")) {
+            generate_voice_samples();
+        } else if (compare_strings_case_insensitive(command, "Exit")) {
             return;
         } else {
             printf("Oops! Haven't heard that one in a while. Please use either \"run\" or \"exit\"\n");
