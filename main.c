@@ -10,15 +10,15 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-// Helper to get the base filename (without path and .txt extension)
-void get_base_filename(const char* filename, char* base, size_t base_size) {
-    const char *slash = strrchr(filename, '/');
-    const char *start = slash ? slash + 1 : filename;
-    strncpy(base, start, base_size - 1);
-    base[base_size - 1] = '\0';
-    char *dot = strrchr(base, '.');
-    if (dot && strcmp(dot, ".txt") == 0) *dot = '\0';
-}
+#ifdef _WIN32
+#include <direct.h>
+#define MKDIR(path, mode) _mkdir(path)
+#else
+#include <sys/stat.h>
+#define MKDIR(path, mode) mkdir(path, mode)
+#endif
+
+
 
 // Split a longer text file into chunks
 void split_txt_file() {
@@ -35,7 +35,7 @@ void split_txt_file() {
             printf("File must have a .txt extension. Please make sure to type .txt\n");
             continue;
         }
-        snprintf(fullpath, sizeof(fullpath), "../input/%s", filename);
+        snprintf(fullpath, sizeof(fullpath), "input/%s", filename);
         if (filepath_is_valid(fullpath)) break;
         printf("File not found. Try again.\n");
     }
@@ -60,7 +60,7 @@ void split_txt_file() {
     while (fscanf(in, "%127s", word) == 1) {
         if (word_count % words_per_file == 0) {
             if (out) fclose(out);
-            snprintf(outname, sizeof(outname), "../input/%s__%d.txt", base, file_idx++);
+            snprintf(outname, sizeof(outname), "input/%s__%d.txt", base, file_idx++);
             out = fopen(outname, "w");
             if (!out) {
                 printf("Failed to create output file: %s\n", outname);
@@ -85,7 +85,7 @@ void split_txt_file() {
 
 // Generate extensive english voice samples
 void generate_voice_samples() {
-    const char* input_file = "../input/DO NOT DELETE/DO NOT DELETE.txt";
+    const char* input_file = "input/DO NOT DELETE/DO NOT DELETE.txt";
     char command[4096];
     
     // Verify input file exists
@@ -97,7 +97,11 @@ void generate_voice_samples() {
     fclose(fp);
 
     // Create output directory
-    mkdir("../output/samples", 0777);
+    if (MKDIR("output/samples", 0777) == 0) {
+        printf("Directory created.\n");
+    } else {
+        printf("Directory may already exist or creation failed.\n");
+    }
 
     // Voice parameters
     double length_scales[] = {0.5, 0.75, 1.00};
@@ -122,15 +126,22 @@ void generate_voice_samples() {
                 // Build output filename
                 char output_file[256];
                 snprintf(output_file, sizeof(output_file),
-                    "../output/samples/%s_ls%.2f_ss%.2f.wav",
+                    "output/samples/%s_ls%.2f_ss%.2f.wav",
                     base_model, length_scales[ls], sentence_silences[ss]);
 
-                // Build command
-                snprintf(command, sizeof(command),
-                    "piper-tts --model \"%s\" --length_scale %.2f --sentence_silence %.2f "
-                    "--output_file \"%s\" < \"%s\"",
-                    model_path, length_scales[ls], sentence_silences[ss],
-                    output_file, input_file);
+                #ifdef _WIN32
+                    snprintf(command, sizeof(command),
+                        "bash -c 'MSYS_NO_PATHCONV=1 piper_win/piper.exe --model \"%s\" --length_scale %.2f --sentence_silence %.2f "
+                        "--output_file \"%s\" --input_file \"input/%s\"'",  // Replaced < with --input_file
+                        model_path, length_scales[ls], sentence_silences[ss], output_file, input_file);
+
+                #else
+                    snprintf(command, sizeof(command),
+                        "piper-tts --model \"%s\" --length_scale %.2f --sentence_silence %.2f "
+                        "--output_file \"output/%s.wav\" < \"input/%s\"",
+                        model_path, length_scales[ls], sentence_silences[ss], output_file, input_file);
+                #endif
+
 
                 // Execute and show status
                 printf("Generating: %s\n", output_file);
@@ -146,7 +157,7 @@ void generate_voice_samples() {
 // Convert all files in the input folder into audio
 void convert(const char *model) {
     char command[2048];
-    DIR *dir = opendir("../input");
+    DIR *dir = opendir("input");
     if (!dir) {
         perror("opendir");
         return;
@@ -160,7 +171,11 @@ void convert(const char *model) {
     );
 
     // Create output directory
-    mkdir("../output", 0777);
+    if (MKDIR("output", 0777) == 0) {
+        printf("Directory created.\n");
+    } else {
+        printf("Directory may already exist or creation failed.\n");
+    }
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
@@ -172,12 +187,21 @@ void convert(const char *model) {
         get_base_filename(filename, basename, sizeof(basename));
 
         // Build command
-        snprintf(command, sizeof(command),
-            "piper-tts --model \"%s\" --length_scale %f --sentence_silence %f "
-            "--output_file \"../output/%s.wav\" < \"../input/%s\"",
-            model, length_scale, sentence_silence, basename, filename);
+        #ifdef _WIN32
+            snprintf(command, sizeof(command),
+                "bash -c 'MSYS_NO_PATHCONV=1 piper_win/piper.exe --model \"%s\" --length_scale %f --sentence_silence %f "
+                "--output_file \"output/%s.wav\" --input_file \"input/%s\"'",  // No "<" redirection
+                model, length_scale, sentence_silence, basename, filename);
+        #else
+            snprintf(command, sizeof(command),
+                "piper-tts --model \"%s\" --length_scale %f --sentence_silence %f "
+                "--output_file \"output/%s.wav\" < \"input/%s\"",
+                model, length_scale, sentence_silence, basename, filename);
+        #endif
 
         // Run command
+        print_working_directory();
+        printf("Command: %s\n", command);
         int result = system(command);
         if (result == 0) {
             printf("Successfully converted '%s'\n", filename);
@@ -218,12 +242,12 @@ void menu() {
     while (true) {
         // Menu options
         printf("Options (not case-sensitive)\n"
-                "1) Run\n"
-                "2) Generate (samples)\n"
-                "3) Split (text files)\n"
-                "4) Exit\n");
+                "1) Convert (txt files in input folder)\n"
+                "2) Generate (voice samples in output/samples)\n"
+                "3) Split (text files in input folder)\n"
+                "4) Exit (program)\n");
         scanf("%s", command);
-        if (compare_strings_case_insensitive(command, "Run")) {
+        if (compare_strings_case_insensitive(command, "Convert")) {
             printf("Running Glowing Umbrella\n");
             run();
             return;
@@ -246,17 +270,10 @@ void welcome() {
         );
 }
 
-void print_working_directory() {
-    char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-        printf("Current working directory: %s\n", cwd);
-    } else {
-        perror("getcwd");
-    }
-}
+
 
 int main(int argc, char *argv[]) {
-    // print_working_directory();
+    print_working_directory();
     welcome();
     menu();
     printf("See you later!\n");
