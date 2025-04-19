@@ -83,7 +83,7 @@ void split_txt_file() {
     printf("Done splitting '%s' into %d-word files.\n", filename, words_per_file);
 }
 
-
+// Generate extensive english voice samples
 void generate_voice_samples() {
     const char* input_file = "../input/DO NOT DELETE/DO NOT DELETE.txt";
     char command[4096];
@@ -143,7 +143,7 @@ void generate_voice_samples() {
     }
 }
 
-
+// Convert all files in the input folder into audio
 void convert(const char *model) {
     char command[2048];
     DIR *dir = opendir("../input");
@@ -188,9 +188,7 @@ void convert(const char *model) {
     closedir(dir);
 }
 
-
-
-
+// Ask which voice to use before moving to conversion
 void run() {
     char input[200] = "null";
 
@@ -213,7 +211,7 @@ void run() {
     }
 }
 
-
+// Display main menu
 void menu() {
     char command[200] = "null";
     // Verify validity of command
@@ -241,6 +239,7 @@ void menu() {
     }
 }
 
+// Welcome text
 void welcome() {
     printf("Welcome to Glowing Umbrella!\n"
         "A free text-to-speech application using Artificial Intelligence.\n"
@@ -257,7 +256,7 @@ void print_working_directory() {
 }
 
 int main(int argc, char *argv[]) {
-    print_working_directory();
+    // print_working_directory();
     welcome();
     menu();
     printf("See you later!\n");
