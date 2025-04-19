@@ -1,0 +1,88 @@
+Chapter 3: The Spirit Smithy
+Blacksmith of the Apocalypse
+After making sure, that he didn’t have to expect to be raided any time soon he returned to the kitchen. His fingers were itching to retry summoning the smithy, but he got the idea to test out the system, which seemed more important for now. Seth wanted to test the inventory. He took what little food reserves he had and tried putting them into the inventory slots, starting with the refilled water bottles.
+
+He remembered the instructions from the tutorial and concentrated on "storing" the bottle he held in his hand. It vanished and instead the icon of a generic water bottle appeared in his inventory. When he looked at it a little window opened stating "Bottle of clean water", similar to when you hovered the mouse of an item in a video game. Next, he tried the same with an empty bottle, which was fittingly labeled as "Empty bottle".
+
+He thought about taking it out and the empty bottle appeared back in his hand. But it wasn’t actually the bottle he had! It was an empty plastic bottle that fit the generic icon that was shown in the item slot, NOT the soda bottle he had stored!
+
+He took out the refilled water bottle, it had also changed! It was exactly the same as the empty bottle, just filled with water. He took one of the regular water bottles and did the same and the same happened, it changed into the same featureless plastic bottle that fit the generic icon in the inventory. Just as he expected, when he stored those filled bottles that had changed again, they stacked in the same slot! Seth conjectured that the inventory would generalize ALL items he stored, so they could be stacked, if they had no defining features. He tested it with the noodles and canned food, and they all lost their label and specific packaging, the system only divided by content, the packaging became the same.
+Seth wanted to try other things next, when he grabbed a knife to see whether it would appear in the weapon slot, it actually did and it stated
+
+<Knife lv.1(can be appraised with <Blacksmith´s Eyes)>
+
+A chance to test the skill! Looking at a kitchen knife he concentrated on the skill. He felt a cool sensation entering his eyes and it gave him a small window.
+
+< Knife
+
+Common
+
+Damage:1-3
+
+
+Durability: 10/10
+A mass-produced sharp knife for cooking purposes. Has a low chance to cause bleeding.>
+
+This was the same for most knives he found, except for the damage being even lower. He tried the skill on other kitchen utensils, which declared them as crafting materials for smelting. Most of his kitchenware was declared as "made of low-quality iron". Materials for smelting, should he try to summon the smithy now and see what he could get from smelting his cutlery, pans, and pots?
+
+Seth decided it was time! His handy itched to try more skills and start grinding his class.
+
+He stood in his empty living room and concentrated on the <Spirit Smithy> skill.
+
+<Spirit Smithy lv.1 summoned!>
+
+What filled his living room now was a basic blacksmith shop!
+
+The knowledge of what he was looking at and how it was supposed to be used, was floating into Seth’s mind. It was part of the different skills like <Spirit Smithy> and <Blacksmith>.
+
+Everything looked incorporeal and transparent, shining in a pale blue.
+
+A ghostly white flame was burning in a stereotypic-looking coal forge that stood in the very center and a medium-sized dark blue anvil beside it. He tried using <Blacksmith´s Eyes > on it.
+
+<Spirit Forge, Crafting Station:
+
+Burning with Soul Fire, the Spirit Forge can be used to work all common materials used for forging. Increases crafting speed by 50%>
+
+He looked to the right where a worktable and a grinding wheel stood. A few tools like hammers and tongs were lying on the table and it had a vise. They were labeled as common and increased the success rate of forging by 5-10%.
+
+The wheel looked ordinary, but a window opened.
+
+<Sisyphus´ Grinding Wheel, Crafting Station:
+
+Part of the boulder Sisyphus is pushing, it will never stop turning while in use. Grind, sharpen and shape any common crafting materials. Increases crafting speed by 50%>
+
+Soul fire in the forge and a grinding wheel named after Sisyphus? This forge seemed very underworld themed.
+
+But the barrel of water to quench the blade had no funny descriptions like "Water of the Styx" at all.
+
+He looked to the left of the forge and saw a cylindrical furnace made of dark thick bricks. It was burning with the same ghostly flame and an assortment of crucibles and casting molds for crude metal bars lay beside it. ř𝘼Ɲ𝖔฿ÊⱾ
+
+<Spirit Furnace, Crafting Station:
+
+Burning with Soul Fire, the Spirit Furnace can be used to melt down and refine common materials used for forging. Increases crafting speed by 50%>
+
+Reading the descriptions, Seth realized that they were restricted to common materials. Was it because it was still level 1? Well, it wasn’t like he had a lot of uncommon materials to work with.
+
+At least Seth guessed, that iron wouldn’t count as uncommon...
+
+He ran his hands over the rows of tools on the work table. When he grasped a hammer, a window with 3 options opened.
+
+<Crafting:
+
+-Choose a Blueprint
+
+-Create a Blueprint
+
+-Free Creation
+
+He could guess what they were, when he clicked them one after the other he was proven correct.
+
+"Choose a Blueprint", was a list of blueprints for weapons and armors which consisted of instructions and receipts. When he clicked the blueprint of a small dagger, he could actually feel minimal guidance. He was sure, that if he now started forging the system would guide him to increase the chances of successfully making the weapon.
+
+"Create a Blueprint" activated <Blueprinting> which was similar to a guided 3d-modeling program where he could design a weapon.
+
+"Free creation" just closed the window and left him to his own devices.
+
+His conviction grew. He could summon a forge wherever he was and make weapons and armor whenever he wanted! This class would be the edge he had in this world!
+
+And he knew exactly what he had to do to succeed in it! Grinding!

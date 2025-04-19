@@ -6,6 +6,32 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
+
+// Function to accept only numerical input
+double get_numerical_input_in_range(const char *prompt, double min, double max) {
+    char buf[100];
+    char *endptr;
+    double value;
+
+    while (1) {
+        printf("%s (between %.2f and %.2f): ", prompt, min, max);
+        if (!fgets(buf, sizeof(buf), stdin)) continue;
+        buf[strcspn(buf, "\n")] = 0; // Remove newline
+
+        value = strtod(buf, &endptr);
+
+        // Skip trailing whitespace
+        while (isspace((unsigned char)*endptr)) endptr++;
+
+        if (buf[0] && *endptr == '\0' && value >= min && value <= max) {
+            return value;
+        }
+        printf("Please enter a valid number between %.2f and %.2f.\n", min, max);
+    }
+}
+
+// Function to only 
 
 // Compare two strings in a case-insensitive manner
 bool compare_strings_case_insensitive(const char *str1, const char *str2) {

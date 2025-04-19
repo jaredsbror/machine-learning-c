@@ -12,10 +12,7 @@
 
 
 void convert(const char *model) {
-    char command[1024];
-    
-    // Create output directory if it doesn't exist
-    mkdir("../output", 0777);
+    char command[2048];  // Increased buffer size for safety
 
     DIR *dir = opendir("../input");
     if (!dir) {
@@ -23,34 +20,40 @@ void convert(const char *model) {
         return;
     }
 
+    double length_scale = 1;
+    length_scale = get_numerical_input_in_range("Please enter the scale (<1.0 = faster, >1.0 = slower)", 0.1, 2);
+    double sentence_silence = 0.2;
+    sentence_silence = get_numerical_input_in_range("Please enter the pause between sentences (in seconds)", 0.1, 2);
+ 
+    // Create output directory if it doesn't exist
+    mkdir("../output", 0777);
+
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
         char *filename = entry->d_name;
         if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0)
             continue;
 
-        // Strip file extension (e.g., "input.txt" → "input")
+        // Strip file extension
         char basename[256];
         strncpy(basename, filename, sizeof(basename));
         char *dot = strrchr(basename, '.');
         if (dot) *dot = '\0';
 
-        // Build command
+        // Build command with proper quoting for spaces
         snprintf(command, sizeof(command),
-            "piper-tts --model %s --output_file ../output/%s.wav < ../input/%s",
-            model, basename, filename);
+            "piper-tts --model \"%s\" --length_scale %f --sentence_silence %f "
+            "--output_file \"../output/%s.wav\" < \"../input/%s\"",
+            model, length_scale, sentence_silence, basename, filename);
 
         // Run command
         int result = system(command);
-        if (result == 0) {
-            printf("Successfully converted %s\n", filename);
-        } else {
-            printf("Failed to convert %s\n", filename);
-        }
+        if (result == 0) printf("Successfully converted '%s'\n", filename);
+        else printf("Failed to convert '%s'\n", filename);
     }
-
     closedir(dir);
 }
+
 
 
 void run() {
@@ -67,11 +70,11 @@ void run() {
         if (compare_strings_case_insensitive(input, "exit")) {
             return;
         } else if (!compare_strings_case_insensitive(filepath, "null")) {
-            printf("Valid input: %s\n", input);
+            printf("Input \'%s\' is Valid.\n", input);
             convert(filepath);
             return;
         }
-        printf("Invalid input. Please enter a valid voice or 'exit'\n\n");
+        printf("Invalid input \'%s\'. Please enter a valid voice or 'exit'\n\n", input);
     }
 }
 
