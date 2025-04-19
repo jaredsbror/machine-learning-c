@@ -131,10 +131,8 @@ void generate_voice_samples() {
 
                 #ifdef _WIN32
                     snprintf(command, sizeof(command),
-                        "bash -c 'MSYS_NO_PATHCONV=1 piper_win/piper.exe --model \"%s\" --length_scale %.2f --sentence_silence %.2f "
-                        "--output_file \"%s\" --input_file \"input/%s\"'",  // Replaced < with --input_file
-                        model_path, length_scales[ls], sentence_silences[ss], output_file, input_file);
-
+                    "bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"%s\" | E:\\Git\\glowing-umbrella\\piper_win\\piper.exe --model \"E:\\Git\\glowing-umbrella\\%s\" --length_scale %.2f --sentence_silence %.2f --output_file \"E:\\Git\\glowing-umbrella\\%s\"",
+                    input_file, model_path, length_scales[ls], sentence_silences[ss], output_file);
                 #else
                     snprintf(command, sizeof(command),
                         "piper-tts --model \"%s\" --length_scale %.2f --sentence_silence %.2f "
@@ -144,7 +142,8 @@ void generate_voice_samples() {
 
 
                 // Execute and show status
-                printf("Generating: %s\n", output_file);
+                // printf("Generating: %s\n", output_file);
+                printf("Command: %s\n", command);
                 int result = system(command);
                 if (result != 0) {
                     printf("ERROR generating %s\n", output_file);
@@ -189,9 +188,8 @@ void convert(const char *model) {
         // Build command
         #ifdef _WIN32
             snprintf(command, sizeof(command),
-                "bash -c 'MSYS_NO_PATHCONV=1 piper_win/piper.exe --model \"%s\" --length_scale %f --sentence_silence %f "
-                "--output_file \"output/%s.wav\" --input_file \"input/%s\"'",  // No "<" redirection
-                model, length_scale, sentence_silence, basename, filename);
+            "bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"E:\\\\Git\\\\glowing-umbrella\\\\input\\\\%s\" | E:\\\\Git\\\\glowing-umbrella\\\\piper_win\\\\piper.exe --model \"E:\\\\Git\\\\glowing-umbrella\\\\%s\" --length_scale %.2f --sentence_silence %.2f --output_file \"E:\\\\Git\\\\glowing-umbrella\\\\output\\\\%s.wav\"'",
+            filename, model, length_scale, sentence_silence, basename);
         #else
             snprintf(command, sizeof(command),
                 "piper-tts --model \"%s\" --length_scale %f --sentence_silence %f "
