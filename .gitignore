@@ -2,3 +2,8 @@
 output/
 venv/
 build/
+piper/piper-voices/en/en_GB/cori/high/en_GB-cori-high.onnx
+piper/piper-voices/en/en_US/lessac/high/en_US-lessac-high.onnx
+piper/piper-voices/en/en_US/libritts/high/en_US-libritts-high.onnx
+piper/piper-voices/en/en_US/ljspeech/high/en_US-ljspeech-high.onnx
+piper/piper-voices/en/en_US/ryan/high/en_US-ryan-high.onnx

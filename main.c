@@ -157,8 +157,8 @@ void generate_voice_samples() {
         return;
     }
 
-    double length_scales[] = {0.5, 0.75, 1.00};
-    double sentence_silences[] = {0.05, 0.1, 0.2};
+    double length_scales[] = {0.6, 0.7, 0.8, 0.9, 1.00};
+    double sentence_silences[] = {0.05, 0.1, 0.15, 0.2, 0.25, 0.30};
     const int num_scales = sizeof(length_scales)/sizeof(length_scales[0]);
     const int num_silences = sizeof(sentence_silences)/sizeof(sentence_silences[0]);
 
