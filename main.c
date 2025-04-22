@@ -9,6 +9,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #ifdef _WIN32
 #include <direct.h>
@@ -18,24 +19,64 @@
 #define MKDIR(path, mode) mkdir(path, mode)
 #endif
 
+// Helper function declarations
+int mkdir_p(const char *dir, mode_t mode);
+char* get_project_root();
+void get_base_filename(const char *path, char *out, size_t out_size);
 
+// Directory creation with parent directories
+int mkdir_p(const char *dir, mode_t mode) {
+    char tmp[4096];
+    char *p = NULL;
+    size_t len;
+    snprintf(tmp, sizeof(tmp), "%s", dir);
+    len = strlen(tmp);
+    if (tmp[len - 1] == '/') tmp[len - 1] = 0;
+    for (p = tmp + 1; *p; p++)
+        if (*p == '/') {
+            *p = 0;
+            MKDIR(tmp, mode);
+            *p = '/';
+        }
+    return MKDIR(tmp, mode);
+}
+
+// Get project root path
+char* get_project_root() {
+    static char path_buffer[4096];
+    if (!getcwd(path_buffer, sizeof(path_buffer))) {
+        perror("getcwd failed");
+        return NULL;
+    }
+    char* found = strstr(path_buffer, "glowing-umbrella");
+    if (!found) {
+        fprintf(stderr, "Project root not found in path: %s\n", path_buffer);
+        return NULL;
+    }
+    *(found + strlen("glowing-umbrella")) = '\0';
+    return path_buffer;
+}
 
 // Split a longer text file into chunks
 void split_txt_file() {
+    char *project_root = get_project_root();
+    if (!project_root) return;
+
     char filename[256];
     char fullpath[512];
     char base[256];
 
-    // Prompt for file name (accept spaces)
+    // Get input directory path
+    char input_dir[512];
+    snprintf(input_dir, sizeof(input_dir), "%s/input", project_root);
+
     while (1) {
-        printf("Enter the name of the .txt file in the input folder? (with NO SPACES in the file name!): ");
+        printf("Enter .txt filename in input folder (no spaces): ");
         if (!fgets(filename, sizeof(filename), stdin)) continue;
-        filename[strcspn(filename, "\n")] = 0; // Remove newline
-        if (strstr(filename, ".txt") == NULL) {
-            printf("File must have a .txt extension. Please make sure to type .txt\n");
-            continue;
-        }
-        snprintf(fullpath, sizeof(fullpath), "input/%s", filename);
+        filename[strcspn(filename, "\n")] = 0;
+        
+        // Build full input path
+        snprintf(fullpath, sizeof(fullpath), "%s/input/%s", project_root, filename);
         if (filepath_is_valid(fullpath)) break;
         printf("File not found. Try again.\n");
     }
@@ -85,68 +126,84 @@ void split_txt_file() {
 
 // Generate extensive english voice samples
 void generate_voice_samples() {
-    const char* input_file = "input/DO NOT DELETE/DO NOT DELETE.txt";
-    char command[4096];
-    
-    // Verify input file exists
-    FILE *fp = fopen(input_file, "r");
+    char* project_root = get_project_root();
+    if (!project_root) return;
+
+    char input_path[4096];
+    snprintf(input_path, sizeof(input_path), 
+            "%s/input/DO NOT DELETE/DO NOT DELETE.txt", project_root);
+
+    FILE *fp = fopen(input_path, "r");
     if (!fp) {
-        printf("Error: Input file '%s' not found!\n", input_file);
+        perror(input_path);
         return;
     }
     fclose(fp);
 
-    // Create output directory
-    if (MKDIR("output/samples", 0777) == 0) {
-        printf("Directory created.\n");
-    } else {
-        printf("Directory may already exist or creation failed.\n");
+    char output_dir[4096];
+    snprintf(output_dir, sizeof(output_dir), 
+            "%s/output/samples", project_root);
+    
+    struct stat st = {0};
+    if (stat(output_dir, &st) == -1) {
+        // Directory does not exist, try to create it
+        if (mkdir_p(output_dir, 0755) != 0) {
+            perror("Failed to create output directory");
+            return;
+        }
+    } else if (!S_ISDIR(st.st_mode)) {
+        // Path exists but is not a directory
+        fprintf(stderr, "Path exists but is not a directory: %s\n", output_dir);
+        return;
     }
 
-    // Voice parameters
     double length_scales[] = {0.5, 0.75, 1.00};
     double sentence_silences[] = {0.05, 0.1, 0.2};
     const int num_scales = sizeof(length_scales)/sizeof(length_scales[0]);
     const int num_silences = sizeof(sentence_silences)/sizeof(sentence_silences[0]);
 
-    // Iterate through all English voices
-    for (int i = 0; i < piper_voices_count; i++) {
-        // Skip non-English voices
-        if (strncmp(piper_voices[i].language_code, "en", 2) != 0) continue;
-        
-        const char* model_path = piper_voices[i].filepath;
+    char command[4096];
 
-        // Get base model name from filepath
+    for (int i = 0; i < piper_voices_count; i++) {
+        if (strncmp(piper_voices[i].language_code, "en", 2) != 0) continue;
+
+        const char* model_path = piper_voices[i].filepath;
         char base_model[256];
         get_base_filename(model_path, base_model, sizeof(base_model));
 
-        // Generate all parameter combinations
         for (int ls = 0; ls < num_scales; ls++) {
             for (int ss = 0; ss < num_silences; ss++) {
-                // Build output filename
                 char output_file[256];
                 snprintf(output_file, sizeof(output_file),
-                    "output/samples/%s_ls%.2f_ss%.2f.wav",
-                    base_model, length_scales[ls], sentence_silences[ss]);
+                        "%s_ls%.2f_ss%.2f.wav",
+                        base_model, length_scales[ls], sentence_silences[ss]);
+                
+                char output_path[4096];
+                snprintf(output_path, sizeof(output_path),
+                        "%s/%s", output_dir, output_file);
 
-                #ifdef _WIN32
-                    snprintf(command, sizeof(command),
-                    "bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"%s\" | E:\\Git\\glowing-umbrella\\piper_win\\piper.exe --model \"E:\\Git\\glowing-umbrella\\%s\" --length_scale %.2f --sentence_silence %.2f --output_file \"E:\\Git\\glowing-umbrella\\%s\"",
-                    input_file, model_path, length_scales[ls], sentence_silences[ss], output_file);
-                #else
-                    snprintf(command, sizeof(command),
-                        "piper-tts --model \"%s\" --length_scale %.2f --sentence_silence %.2f "
-                        "--output_file \"output/%s.wav\" < \"input/%s\"",
-                        model_path, length_scales[ls], sentence_silences[ss], output_file, input_file);
-                #endif
+#ifdef _WIN32
+                snprintf(command, sizeof(command),
+                    "bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"%s\" | \"%s/piper_win/piper.exe\""
+                    " --model \"%s/%s\" --length_scale %.2f --sentence_silence %.2f"
+                    " --output_file \"%s\"",
+                    input_path, project_root, 
+                    project_root, model_path,
+                    length_scales[ls], sentence_silences[ss],
+                    output_path);
+#else
+                snprintf(command, sizeof(command),
+                    "piper-tts --model \"%s/%s\" --length_scale %.2f --sentence_silence %.2f"
+                    " --output_file \"%s\" < \"%s\"",
+                    project_root, model_path,
+                    length_scales[ls], sentence_silences[ss],
+                    output_path, input_path);
+#endif
 
-
-                // Execute and show status
-                // printf("Generating: %s\n", output_file);
-                printf("Command: %s\n", command);
+                printf("Executing: %s\n", command);
                 int result = system(command);
                 if (result != 0) {
-                    printf("ERROR generating %s\n", output_file);
+                    printf("ERROR generating %s\n", output_path);
                 }
             }
         }
@@ -155,7 +212,10 @@ void generate_voice_samples() {
 
 // Convert all files in the input folder into audio
 void convert(const char *model) {
-    char command[2048];
+    char* project_root = get_project_root();
+    if (!project_root) return;
+
+    char command[4096];
     DIR *dir = opendir("input");
     if (!dir) {
         perror("opendir");
@@ -169,42 +229,48 @@ void convert(const char *model) {
         "Please enter the pause between sentences (in seconds)", 0.1, 2
     );
 
-    // Create output directory
-    if (MKDIR("output", 0777) == 0) {
-        printf("Directory created.\n");
-    } else {
-        printf("Directory may already exist or creation failed.\n");
-    }
+    char output_dir[4096];
+    snprintf(output_dir, sizeof(output_dir), "%s/output", project_root);
+    mkdir_p(output_dir, 0755);
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
         char *filename = entry->d_name;
         if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) continue;
 
-        // Get base filename
         char basename[256];
         get_base_filename(filename, basename, sizeof(basename));
 
-        // Build command
-        #ifdef _WIN32
-            snprintf(command, sizeof(command),
-            "bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"E:\\\\Git\\\\glowing-umbrella\\\\input\\\\%s\" | E:\\\\Git\\\\glowing-umbrella\\\\piper_win\\\\piper.exe --model \"E:\\\\Git\\\\glowing-umbrella\\\\%s\" --length_scale %.2f --sentence_silence %.2f --output_file \"E:\\\\Git\\\\glowing-umbrella\\\\output\\\\%s.wav\"'",
-            filename, model, length_scale, sentence_silence, basename);
-        #else
-            snprintf(command, sizeof(command),
-                "piper-tts --model \"%s\" --length_scale %f --sentence_silence %f "
-                "--output_file \"output/%s.wav\" < \"input/%s\"",
-                model, length_scale, sentence_silence, basename, filename);
-        #endif
+        char input_path[4096];
+        snprintf(input_path, sizeof(input_path), "%s/input/%s", project_root, filename);
+        
+        char output_path[4096];
+        snprintf(output_path, sizeof(output_path), "%s/%s.wav", output_dir, basename);
 
-        // Run command
-        print_working_directory();
-        printf("Command: %s\n", command);
+#ifdef _WIN32
+        snprintf(command, sizeof(command),
+            "bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"%s\" | \"%s/piper_win/piper.exe\""
+            " --model \"%s/%s\" --length_scale %.2f --sentence_silence %.2f"
+            " --output_file \"%s\"",
+            input_path, project_root, 
+            project_root, model,
+            length_scale, sentence_silence,
+            output_path);
+#else
+        snprintf(command, sizeof(command),
+            "piper-tts --model \"%s/%s\" --length_scale %.2f --sentence_silence %.2f"
+            " --output_file \"%s\" < \"%s\"",
+            project_root, model,
+            length_scale, sentence_silence,
+            output_path, input_path);
+#endif
+
+        printf("Processing: %s\n", filename);
         int result = system(command);
         if (result == 0) {
-            printf("Successfully converted '%s'\n", filename);
+            printf("Success: %s\n", output_path);
         } else {
-            printf("Failed to convert '%s'\n", filename);
+            printf("Failed: %s\n", filename);
         }
     }
     closedir(dir);

@@ -1,1 +1,0 @@
-/usr/bin/cc -Wl,--dependency-file=CMakeFiles/glowing_umbrella.dir/link.d CMakeFiles/glowing_umbrella.dir/src/main.c.o -o glowing_umbrella

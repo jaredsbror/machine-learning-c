@@ -1,3 +1,0 @@
-/home/joshua/glowing-umbrella/build/CMakeFiles/glowing_umbrella.dir
-/home/joshua/glowing-umbrella/build/CMakeFiles/edit_cache.dir
-/home/joshua/glowing-umbrella/build/CMakeFiles/rebuild_cache.dir
