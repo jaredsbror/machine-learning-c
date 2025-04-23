@@ -20,6 +20,8 @@
 void split_txt_file(void);
 void generate_voice_samples(void);
 void convert(const char *model);
+void convertCustom(const char *model_path, const char *fixed_input_path, const char *fixed_output_path, 
+    const double length_scale, const double sentence_silence);
 void run(void);
 void menu(void);
 void welcome(void);

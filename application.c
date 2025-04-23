@@ -13,6 +13,7 @@
     #define MKDIR(path, mode) mkdir(path, mode)
 #endif
 
+
 // Split a longer text file into chunks
 void split_txt_file() {
     char *project_root = get_project_root();
@@ -79,6 +80,7 @@ void split_txt_file() {
 
     printf("Done splitting '%s' into %d-word files.\n", filename, words_per_file);
 }
+
 
 // Generate extensive english voice samples
 void generate_voice_samples() {
@@ -166,6 +168,70 @@ void generate_voice_samples() {
 }
 
 // Convert all files in the input folder into audio
+void convertCustom(const char *model_path, const char *fixed_input_path, const char *fixed_output_path, 
+    const double length_scale, const double sentence_silence) {
+    char* project_root = get_project_root();
+    if (!project_root) return;
+
+    char command[4096];
+
+    // Use parameterized input path
+    DIR *dir = opendir(fixed_input_path);
+    if (!dir) {
+        perror("opendir");
+        return;
+    }
+
+    // Use parameterized output path
+    mkdir_p(fixed_output_path, 0755);
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        char *filename = entry->d_name;
+        if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) continue;
+
+        char basename[256];
+        get_base_filename(filename, basename, sizeof(basename));
+
+        // Build paths using parameters
+        char input_path[4096];
+        snprintf(input_path, sizeof(input_path), "%s/%s", fixed_input_path, filename);
+
+        char output_path[4096];
+        snprintf(output_path, sizeof(output_path), "%s/%s.wav", fixed_output_path, basename);
+
+        #ifdef _WIN32
+            snprintf(command, sizeof(command),
+            "bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"%s\" | \"%s/piper_win/piper.exe\""
+            " --model \"%s\" --length_scale %.2f --sentence_silence %.2f"
+            " --output_file \"%s\"",
+            input_path, project_root,
+            model_path,
+            length_scale, sentence_silence,
+            output_path);
+        #else
+            snprintf(command, sizeof(command),
+            "piper-tts --model \"%s\" --length_scale %.2f --sentence_silence %.2f"
+            " --output_file \"%s\" < \"%s\"",
+            model_path,
+            length_scale, sentence_silence,
+            output_path, input_path);
+        #endif
+
+        printf("Processing: %s\n", filename);
+        int result = system(command);
+        if (result == 0) {
+            printf("Success: %s\n", output_path);
+        } else {
+            printf("Failed: %s\n", filename);
+        }
+    }
+    closedir(dir);
+}
+
+
+
+// Convert all files in the input folder into audio
 void convert(const char *model) {
     char* project_root = get_project_root();
     if (!project_root) return;
@@ -202,7 +268,7 @@ void convert(const char *model) {
         char output_path[4096];
         snprintf(output_path, sizeof(output_path), "%s/%s.wav", output_dir, basename);
 
-#ifdef _WIN32
+    #ifdef _WIN32
         snprintf(command, sizeof(command),
             "bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"%s\" | \"%s/piper_win/piper.exe\""
             " --model \"%s/%s\" --length_scale %.2f --sentence_silence %.2f"
@@ -211,14 +277,14 @@ void convert(const char *model) {
             project_root, model,
             length_scale, sentence_silence,
             output_path);
-#else
+    #else
         snprintf(command, sizeof(command),
             "piper-tts --model \"%s/%s\" --length_scale %.2f --sentence_silence %.2f"
             " --output_file \"%s\" < \"%s\"",
             project_root, model,
             length_scale, sentence_silence,
             output_path, input_path);
-#endif
+    #endif
 
         printf("Processing: %s\n", filename);
         int result = system(command);
@@ -230,6 +296,7 @@ void convert(const char *model) {
     }
     closedir(dir);
 }
+
 
 // Ask which voice to use before moving to conversion
 void run() {
@@ -253,6 +320,8 @@ void run() {
         printf("Invalid input \'%s\'. Please enter a valid voice or 'exit'\n\n", input);
     }
 }
+
+
 
 // Display main menu
 void menu() {
@@ -281,6 +350,7 @@ void menu() {
         }
     }
 }
+
 
 // Welcome text
 void welcome() {
