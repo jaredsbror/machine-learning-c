@@ -1,9 +1,14 @@
-#include "helpers.h"
-typedef struct {
-    const char *language_code;
-    const char *voice_name;
-    const char *filepath;
-} PiperVoice;
+#include "voices.h"
+#include "data.h"
+#include <sys/stat.h>
+
+#ifdef _WIN32
+    #include <direct.h>
+    #define MKDIR(path, mode) _mkdir(path)
+#else
+    #include <sys/stat.h>
+    #define MKDIR(path, mode) mkdir(path, mode)
+#endif
 
 PiperVoice piper_voices[] = {
     // Arabic (ar_JO)

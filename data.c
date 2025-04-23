@@ -1,11 +1,5 @@
-#ifndef HELPERS_H
-#define HELPERS_H
-
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include <ctype.h>
-#include <stdlib.h>
+#include "data.h"
+#include <sys/stat.h>
 
 #ifdef _WIN32
     #include <direct.h>
@@ -14,20 +8,6 @@
     #include <sys/stat.h>
     #define MKDIR(path, mode) mkdir(path, mode)
 #endif
-    
-// Get base filename (handles Windows paths)
-void get_base_filename(const char* filename, char* base, size_t base_size) {
-    const char *slash = strrchr(filename, '/');
-#ifdef _WIN32
-    const char *bslash = strrchr(filename, '\\');
-    if (!slash || (bslash && bslash > slash)) slash = bslash;
-#endif
-    const char *start = slash ? slash + 1 : filename;
-    strncpy(base, start, base_size - 1);
-    base[base_size - 1] = '\0';
-    char *dot = strrchr(base, '.');
-    if (dot) *dot = '\0';
-}
 
 // Numerical input with range validation
 double get_numerical_input_in_range(const char *prompt, double min, double max) {
@@ -53,11 +33,9 @@ double get_numerical_input_in_range(const char *prompt, double min, double max) 
 // Case-insensitive string comparison
 bool compare_strings_case_insensitive(const char *str1, const char *str2) {
     if (str1 == NULL || str2 == NULL) return (str1 == str2);
-
     size_t len1 = strlen(str1);
     size_t len2 = strlen(str2);
     if (len1 != len2) return false;
-
     for (size_t i = 0; i < len1; i++) {
         if (tolower((unsigned char)str1[i]) != tolower((unsigned char)str2[i])) {
             return false;
@@ -65,24 +43,3 @@ bool compare_strings_case_insensitive(const char *str1, const char *str2) {
     }
     return true;
 }
-
-// Check if a file exists
-bool filepath_is_valid(const char *filepath) {
-    FILE *fp = fopen(filepath, "r");
-    if (fp) {
-        fclose(fp);
-        return true;
-    }
-    return false;
-}
-
-void print_working_directory() {
-    char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-        printf("Current working directory: %s\n", cwd);
-    } else {
-        perror("getcwd");
-    }
-}
-
-#endif // HELPERS_H

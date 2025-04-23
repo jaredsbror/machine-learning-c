@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "filepath.h": "c",
-        "stdlib.h": "c"
-    }
+        "stdlib.h": "c",
+        "helpers.h": "c",
+        "voices.h": "c",
+        "data.h": "c",
+        "application.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }
