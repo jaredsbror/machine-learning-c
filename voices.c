@@ -74,18 +74,20 @@ PiperVoice piper_voices[] = {
     { "en_US", "ljspeech (medium)", "piper/piper-voices/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx" },
     { "en_US", "ljspeech (high)", "piper/piper-voices/en/en_US/ljspeech/high/en_US-ljspeech-high.onnx" },
     { "en_US", "norman (medium)", "piper/piper-voices/en/en_US/norman/medium/en_US-norman-medium.onnx" },
+    { "en_US", "reza_ibrahim (medium)", "piper/piper-voices/en/en_US/reza_ibrahim/medium/en_US-reza_ibrahim-medium.onnx" },
     { "en_US", "ryan (low)", "piper/piper-voices/en/en_US/ryan/low/en_US-ryan-low.onnx" },
     { "en_US", "ryan (medium)", "piper/piper-voices/en/en_US/ryan/medium/en_US-ryan-medium.onnx" },
     { "en_US", "ryan (high)", "piper/piper-voices/en/en_US/ryan/high/en_US-ryan-high.onnx" },
+    { "en_US", "sam (medium)", "piper/piper-voices/en/en_US/sam/medium/en_US-sam-medium.onnx" },
    
-    // // Spanish (es_ES/es_MX)
-    // { "es_ES", "carlfm (x_low)", "piper/piper-voices/es/es_ES/carlfm/x_low/es_ES-carlfm-x_low.onnx" },
-    // { "es_ES", "davefx (medium)", "piper/piper-voices/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx" },
-    // { "es_ES", "mls_10246 (low)", "piper/piper-voices/es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx" },
-    // { "es_ES", "mls_9972 (low)", "piper/piper-voices/es/es_ES/mls_9972/low/es_ES-mls_9972-low.onnx" },
-    // { "es_ES", "sharvard (medium)", "piper/piper-voices/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx" },
-    // { "es_MX", "ald (medium)", "piper/piper-voices/es/es_MX/ald/medium/es_MX-ald-medium.onnx" },
-    // { "es_MX", "claude (high)", "piper/piper-voices/es/es_MX/claude/high/es_MX-claude-high.onnx" },
+    // Spanish (es_ES/es_MX)
+    { "es_ES", "carlfm (x_low)", "piper/piper-voices/es/es_ES/carlfm/x_low/es_ES-carlfm-x_low.onnx" },
+    { "es_ES", "davefx (medium)", "piper/piper-voices/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx" },
+    { "es_ES", "mls_10246 (low)", "piper/piper-voices/es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx" },
+    { "es_ES", "mls_9972 (low)", "piper/piper-voices/es/es_ES/mls_9972/low/es_ES-mls_9972-low.onnx" },
+    { "es_ES", "sharvard (medium)", "piper/piper-voices/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx" },
+    { "es_MX", "ald (medium)", "piper/piper-voices/es/es_MX/ald/medium/es_MX-ald-medium.onnx" },
+    { "es_MX", "claude (high)", "piper/piper-voices/es/es_MX/claude/high/es_MX-claude-high.onnx" },
 
     // // Farsi (fa_IR)
     // { "fa_IR", "amir (medium)", "piper/piper-voices/fa/fa_IR/amir/medium/fa_IR-amir-medium.onnx" },
@@ -153,9 +155,11 @@ PiperVoice piper_voices[] = {
     // { "pl_PL", "mls_6892 (low)", "piper/piper-voices/pl/pl_PL/mls_6892/low/pl_PL-mls_6892-low.onnx" },
 
     // // Portuguese (pt_BR/pt_PT)
-    // { "pt_BR", "edresson (low)", "piper/piper-voices/pt/pt_BR/edresson/low/pt_BR-edresson-low.onnx" },
-    // { "pt_BR", "faber (medium)", "piper/piper-voices/pt/pt_BR/faber/medium/pt_BR-faber-medium.onnx" },
-    // { "pt_PT", "tugão (medium)", "piper/piper-voices/pt/pt_PT/tugao/medium/pt_PT-tugao-medium.onnx" }, // "tugão" → "tugao"
+    { "pt_BR", "cadu (medium)", "piper/piper-voices/pt/pt_BR/cadu/medium/pt_BR-cadu-medium.onnx" },
+    { "pt_BR", "edresson (low)", "piper/piper-voices/pt/pt_BR/edresson/low/pt_BR-edresson-low.onnx" },
+    { "pt_BR", "faber (medium)", "piper/piper-voices/pt/pt_BR/faber/medium/pt_BR-faber-medium.onnx" },
+    { "pt_BR", "jeff (medium)", "piper/piper-voices/pt/pt_BR/jeff/medium/pt_BR-jeff-medium.onnx" },
+    { "pt_PT", "tugao (medium)", "piper/piper-voices/pt/pt_PT/tugao/medium/pt_PT-tugao-medium.onnx" }, // "tugão" → "tugao"
 
     // // Romanian (ro_RO)
     // { "ro_RO", "mihai (medium)", "piper/piper-voices/ro/ro_RO/mihai/medium/ro_RO-mihai-medium.onnx" },
