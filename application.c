@@ -4,6 +4,10 @@
 #include "data.h"
 #include <sys/stat.h>
 #include <dirent.h>
+#include <windows.h>
+#include <commdlg.h>
+#include <shlobj.h>
+#include <stdio.h>
 
 #ifdef _WIN32
     #include <direct.h>
@@ -12,6 +16,97 @@
     #include <sys/stat.h>
     #define MKDIR(path, mode) mkdir(path, mode)
 #endif
+
+// application.h
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
+
+EXPORT void split_txt_file_gui(const char* txtPath, int wordsPerFile);
+EXPORT void convertCustom(const char *model_path, const char *input_path, 
+                         const char *output_path, double length_scale, 
+                         double sentence_silence);
+EXPORT void generate_voice_samples();
+
+
+void split_txt_file_gui(const char* txtPath, int wordsPerFile) {
+    FILE *in = fopen(txtPath, "r");
+    if (!in) {
+        MessageBoxW(NULL, L"Failed to open input file", L"Error", MB_ICONERROR);
+        return;
+    }
+
+    // Extract directory and base filename without extension
+    char dir[1024], base[256];
+#ifdef _WIN32
+    char drive[10], ext[256];
+    _splitpath_s(txtPath, drive, sizeof(drive), dir, sizeof(dir), base, sizeof(base), ext, sizeof(ext));
+    // Remove original extension if it's .txt
+    if (_stricmp(ext, ".txt") == 0) {
+        char *dot = strrchr(base, '.');
+        if (dot) *dot = '\0';
+    }
+#else
+    char *path_copy = strdup(txtPath);
+    strncpy(dir, dirname(path_copy), sizeof(dir)-1);
+    dir[sizeof(dir)-1] = '\0';
+    free(path_copy);
+    
+    path_copy = strdup(txtPath);
+    char *filename = basename(path_copy);
+    strncpy(base, filename, sizeof(base)-1);
+    base[sizeof(base)-1] = '\0';
+    free(path_copy);
+    
+    // Remove .txt extension if present
+    char *ext = strrchr(base, '.');
+    if (ext && strcasecmp(ext, ".txt") == 0) {
+        *ext = '\0';
+    }
+#endif
+
+    int file_idx = 100, word_count = 0;
+    char word[128];
+    char outpath[2048];
+    FILE *out = NULL;
+
+    while (fscanf(in, "%127s", word) == 1) {
+        if (word_count % wordsPerFile == 0) {
+            if (out) fclose(out);
+            
+            // Build output path with single .txt extension
+#ifdef _WIN32
+            snprintf(outpath, sizeof(outpath), "%s\\%s__%d.txt", dir, base, file_idx++);
+#else
+            snprintf(outpath, sizeof(outpath), "%s/%s__%d.txt", dir, base, file_idx++);
+#endif
+            out = fopen(outpath, "w");
+            
+            if (!out) {
+                MessageBoxW(NULL, L"Failed to create output file", L"Error", MB_ICONERROR);
+                fclose(in);
+                return;
+            }
+        }
+
+        fprintf(out, "%s", word);
+        word_count++;
+
+        // Add space unless it's the last word in chunk
+        if (word_count % wordsPerFile != 0) {
+            fprintf(out, " ");
+        } else {
+            fprintf(out, "\n");
+        }
+    }
+
+    if (out) fclose(out);
+    fclose(in);
+}
+                        
+                        
 
 
 // Split a longer text file into chunks

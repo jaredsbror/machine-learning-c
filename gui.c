@@ -6,6 +6,7 @@
 #include "application.h"
 #include "voices.h"
 #include "data.h"
+#include "files.h"
 
 #define ID_INPUT_BUTTON 101
 #define ID_OUTPUT_BUTTON 102
@@ -13,13 +14,18 @@
 #define ID_SPEED_EDIT 104
 #define ID_PAUSE_EDIT 105
 #define ID_GENERATE_BUTTON 106
+#define ID_TXT_FILE_BUTTON 107
+#define ID_WORDS_EDIT 108
+#define ID_SPLIT_BUTTON 109
 
 HWND hwndInputPath, hwndOutputPath, hwndSpeed, hwndPause, hwndVoiceCombo;
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void AddControls(HWND hwnd);
 void OpenFolderDialog(HWND hwnd, HWND hwndEdit);
+void OpenFileDialog(HWND hwnd, HWND hwndEdit);
 BOOL ValidateFloatInput(HWND hwndEdit, float min, float max);
+BOOL ValidateIntegerInput(HWND hwndEdit, int min, int max);
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow) {
@@ -72,6 +78,19 @@ void AddControls(HWND hwnd) {
     CreateWindowW(L"STATIC", L"Voice:", WS_VISIBLE | WS_CHILD, 10, 130, 50, 20, hwnd, NULL, NULL, NULL);
     hwndVoiceCombo = CreateWindowW(L"COMBOBOX", L"", WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | WS_VSCROLL, 190, 130, 250, 150, hwnd, (HMENU)ID_VOICE_COMBO, NULL, NULL);
 
+    // Text file selection
+    CreateWindowW(L"STATIC", L"Text File:", WS_VISIBLE | WS_CHILD, 10, 160, 100, 20, hwnd, NULL, NULL, NULL);
+    HWND hwndTxtPath = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, 120, 160, 350, 20, hwnd, NULL, NULL, NULL);
+    CreateWindowW(L"BUTTON", L"Browse...", WS_VISIBLE | WS_CHILD, 480, 160, 80, 20, hwnd, (HMENU)ID_TXT_FILE_BUTTON, NULL, NULL);
+
+    // Words per file input
+    CreateWindowW(L"STATIC", L"Words/File:", WS_VISIBLE | WS_CHILD, 10, 190, 100, 20, hwnd, NULL, NULL, NULL);
+    hwndWords = CreateWindowW(L"EDIT", L"3700", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_NUMBER, 120, 190, 100, 20, hwnd, (HMENU)ID_WORDS_EDIT, NULL, NULL);
+
+    // Split button
+    CreateWindowW(L"BUTTON", L"Split", WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 250, 220, 100, 30, hwnd, (HMENU)ID_SPLIT_BUTTON, NULL, NULL);
+
+
     // Populate the combo box with voice names
     for (int i = 0; i < piper_voices_count; i++) {
         wchar_t voiceNameWide[256];
@@ -101,6 +120,21 @@ void OpenFolderDialog(HWND hwnd, HWND hwndEdit) {
     }
 }
 
+void OpenFileDialog(HWND hwnd, HWND hwndEdit) {
+    OPENFILENAMEW ofn = {0};
+    wchar_t fileName[MAX_PATH] = {0};
+    
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = hwnd;
+    ofn.lpstrFilter = L"Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0";
+    ofn.lpstrFile = fileName;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+    
+    if(GetOpenFileNameW(&ofn))
+        SetWindowTextW(hwndEdit, fileName);
+}
+
 
 BOOL ValidateFloatInput(HWND hwndEdit, float min, float max) {
     wchar_t text[32];
@@ -116,6 +150,19 @@ BOOL ValidateFloatInput(HWND hwndEdit, float min, float max) {
     }
     return TRUE;
 }
+
+BOOL ValidateIntegerInput(HWND hwndEdit, int min, int max) {
+    wchar_t text[32];
+    GetWindowTextW(hwndEdit, text, 32);
+    
+    int value = _wtoi(text);
+    if(value < min || value > max) {
+        MessageBoxW(NULL, L"Invalid value! Enter between 1-100000", L"Error", MB_ICONERROR);
+        return FALSE;
+    }
+    return TRUE;
+}
+
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -171,7 +218,26 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     
                         MessageBoxW(hwnd, L"Generation started!", L"Info", MB_OK);
                         break;
-                    
+
+                    case ID_TXT_FILE_BUTTON:
+                        OpenFileDialog(hwnd, hwndTxtPath);
+                        break;
+                        
+                    case ID_SPLIT_BUTTON: {
+                        if(!ValidateIntegerInput(hwndWords, 1, 100000)) break;
+                        
+                        wchar_t txtPathW[MAX_PATH], wordsText[32];
+                        GetWindowTextW(hwndTxtPath, txtPathW, MAX_PATH);
+                        GetWindowTextW(hwndWords, wordsText, 32);
+                        
+                        char txtPath[MAX_PATH];
+                        WideCharToMultiByte(CP_UTF8, 0, txtPathW, -1, txtPath, MAX_PATH, NULL, NULL);
+                        
+                        int wordsPer = _wtoi(wordsText);
+                        // Call split function with parameters
+                        split_txt_file_gui(txtPath, wordsPer);
+                        MessageBoxW(hwnd, L"File split completed!", L"Info", MB_OK);
+                        break;
                 }
             }
             break;
