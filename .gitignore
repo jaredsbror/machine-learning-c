@@ -11,3 +11,4 @@ input/*.txt
 input/On_Standby/
 input/test_input/
 input/temp/
+input/*.wav

@@ -1,20 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
-from ctypes import CDLL, c_char_p, c_int, c_double
-import os
+import os, subprocess
 
-# Load compiled C library
-tts_lib = CDLL('./tts_lib.dll')  # Windows
-# tts_lib = CDLL('./libtts.so')  # Linux
-
-# Define C function prototypes
-tts_lib.split_txt_file_gui.argtypes = [c_char_p, c_int]
-tts_lib.split_txt_file_gui.restype = None
-
-tts_lib.convertCustom.argtypes = [c_char_p, c_char_p, c_char_p, c_double, c_double]
-tts_lib.convertCustom.restype = None
-
-# Voice data from C header (should match voices.c)
 VOICES = [
     # English (en_GB)
     ("en_GB: alan (low)", "piper/piper-voices/en/en_GB/alan/low/en_GB-alan-low.onnx"),
@@ -56,7 +43,7 @@ VOICES = [
     ("en_US: ryan (medium)", "piper/piper-voices/en/en_US/ryan/medium/en_US-ryan-medium.onnx"),
     ("en_US: ryan (high)", "piper/piper-voices/en/en_US/ryan/high/en_US-ryan-high.onnx"),
     ("en_US: sam (medium)", "piper/piper-voices/en/en_US/sam/medium/en_US-sam-medium.onnx"),
-    
+
     # Spanish (es_ES/es_MX)
     ("es_ES: carlfm (x_low)", "piper/piper-voices/es/es_ES/carlfm/x_low/es_ES-carlfm-x_low.onnx"),
     ("es_ES: davefx (medium)", "piper/piper-voices/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx"),
@@ -75,47 +62,67 @@ VOICES = [
 ]
 
 
+WORDS_TO_REPLACE = [
+    ("the hell", "the heck"),
+    ("the fuck", "the heck"),
+    # Add more pairs as needed
+]
+
+def get_project_root(self):
+        path = os.path.abspath(os.getcwd())
+        while True:
+            if os.path.basename(path) == "glowing-umbrella":
+                return path
+            parent = os.path.dirname(path)
+            if parent == path:
+                raise RuntimeError("Could not find project root")
+            path = parent
+
 class PiperTTSGUI:
     def __init__(self, root):
         self.root = root
-        root.title("Piper TTS Configuration")
+        root.title("Glowing Umbrella - Piper TTS Configuration")
         self.create_widgets()
         self.setup_validation()
-        
+
     def create_widgets(self):
-        # Input Folder Section
+        # Input/Output
         ttk.Label(self.root, text="Input Folder:").grid(row=0, column=0, padx=5, pady=5)
         self.input_path = ttk.Entry(self.root, width=50)
         self.input_path.grid(row=0, column=1, padx=5, pady=5)
         ttk.Button(self.root, text="Browse...", command=self.browse_input).grid(row=0, column=2, padx=5)
 
-        # Output Folder Section
         ttk.Label(self.root, text="Output Folder:").grid(row=1, column=0, padx=5, pady=5)
         self.output_path = ttk.Entry(self.root, width=50)
         self.output_path.grid(row=1, column=1, padx=5, pady=5)
         ttk.Button(self.root, text="Browse...", command=self.browse_output).grid(row=1, column=2, padx=5)
 
-        # Voice Selection
+        # Voice
         ttk.Label(self.root, text="Voice:").grid(row=2, column=0, padx=5, pady=5)
-        self.voice_combo = ttk.Combobox(self.root, values=[v[0] for v in VOICES], state="readonly")
-        self.voice_combo.current(1)
+        self.voice_combo = ttk.Combobox(
+            self.root,
+            values=[v[0] for v in VOICES],  # Combine lang tag and name
+            state="readonly"
+        )
+        self.voice_combo.current(0)
         self.voice_combo.grid(row=2, column=1, padx=5, pady=5, columnspan=2, sticky="ew")
 
-        # Speed and Pause Controls
+
+        # Speed/Pause
         ttk.Label(self.root, text="Speed Scale (0.001-2.0):").grid(row=3, column=0, padx=5, pady=5)
         self.speed_entry = ttk.Entry(self.root)
         self.speed_entry.insert(0, "1.0")
         self.speed_entry.grid(row=3, column=1, padx=5, pady=5)
-        
+
         ttk.Label(self.root, text="Pause (0.001-2.0):").grid(row=4, column=0, padx=5, pady=5)
         self.pause_entry = ttk.Entry(self.root)
         self.pause_entry.insert(0, "0.2")
         self.pause_entry.grid(row=4, column=1, padx=5, pady=5)
 
-        # Action Buttons
+        # Convert
         ttk.Button(self.root, text="Convert", command=self.convert_files).grid(row=5, column=0, pady=10)
 
-        # Split File Section
+        # Split File
         ttk.Label(self.root, text="Text File:").grid(row=6, column=0, padx=5, pady=5)
         self.txt_path = ttk.Entry(self.root, width=50)
         self.txt_path.grid(row=6, column=1, padx=5, pady=5)
@@ -126,11 +133,11 @@ class PiperTTSGUI:
         self.words_entry.insert(0, "3700")
         self.words_entry.grid(row=7, column=1, padx=5, pady=5, sticky='w')
 
-        # Action Buttons
         ttk.Button(self.root, text="Split", command=self.split_file).grid(row=8, column=0, pady=10)
-
-        # Action Buttons
+        ttk.Button(self.root, text="Replace Words", command=self.replace_phrases_in_file).grid(row=8, column=1, pady=10)
         ttk.Button(self.root, text="Generate Samples", command=self.generate_samples).grid(row=9, column=0, pady=10)
+
+    
 
     def setup_validation(self):
         self.speed_entry.config(validate="key", validatecommand=(
@@ -140,12 +147,14 @@ class PiperTTSGUI:
         self.words_entry.config(validate="key", validatecommand=(
             self.root.register(self.validate_int), '%P'))
 
+
     def validate_float(self, value):
         try:
             if not value: return True
             return 0.001 <= float(value) <= 2.0
         except ValueError:
             return False
+
 
     def validate_int(self, value):
         try:
@@ -154,11 +163,13 @@ class PiperTTSGUI:
         except ValueError:
             return False
 
+
     def browse_input(self):
         path = filedialog.askdirectory()
         if path:
             self.input_path.delete(0, tk.END)
             self.input_path.insert(0, path)
+
 
     def browse_output(self):
         path = filedialog.askdirectory()
@@ -166,64 +177,181 @@ class PiperTTSGUI:
             self.output_path.delete(0, tk.END)
             self.output_path.insert(0, path)
 
+
     def browse_txt(self):
         path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
         if path:
             self.txt_path.delete(0, tk.END)
             self.txt_path.insert(0, path)
 
-    def split_file(self):
-        txt_path = self.txt_path.get().encode('utf-8')
-        try:
-            words = int(self.words_entry.get())
-            if not 1 <= words <= 100000:
-                raise ValueError
-        except ValueError:
-            messagebox.showerror("Error", "Enter a valid number between 1-100000")
-            return
-
-        tts_lib.split_txt_file_gui(c_char_p(txt_path), c_int(words))
-        messagebox.showinfo("Info", "File split completed!")
 
     def convert_files(self):
-        # Validate inputs
         try:
-            speed = float(self.speed_entry.get())
-            pause = float(self.pause_entry.get())
-            if not (0.001 <= speed <= 2.0) or not (0.001 <= pause <= 2.0):
+            # Get selected voice/model
+            model_idx = self.voice_combo.current()
+            if model_idx == -1:
+                messagebox.showerror("Error", "Select a voice first.")
+                return
+            model_relpath = VOICES[model_idx][1]
+
+            input_dir = self.input_path.get()
+            output_dir = self.output_path.get()
+            try:
+                length_scale = float(self.speed_entry.get())
+                sentence_silence = float(self.pause_entry.get())
+                if not (0.001 <= length_scale <= 2.0) or not (0.001 <= sentence_silence <= 2.0):
+                    raise ValueError
+            except ValueError:
+                messagebox.showerror("Error", "Invalid speed or pause value.")
+                return
+
+            # Find project root
+            project_root = get_project_root(self)
+
+            # Build absolute model path
+            model_path = os.path.join(project_root, model_relpath)
+            if not os.path.isfile(model_path):
+                messagebox.showerror("Error", f"Model file not found:\n{model_path}")
+                return
+
+            # Ensure output directory exists
+            os.makedirs(output_dir, exist_ok=True)
+
+            # Process each .txt file in input_dir
+            files_converted = 0
+            for filename in os.listdir(input_dir):
+                if not filename.lower().endswith(".txt"):
+                    continue
+                base = os.path.splitext(filename)[0]
+                input_path = os.path.join(input_dir, filename)
+                output_path = os.path.join(output_dir, f"{base}.wav")
+                command = (
+                    f"bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"{input_path}\" | "
+                    f"\"{project_root}/piper_win/piper.exe\" "
+                    f"--model \"{model_path}\" --length_scale {length_scale:.2f} --sentence_silence {sentence_silence:.2f} "
+                    f"--output_file \"{output_path}\""
+                )
+                print(f"Processing: {filename}")
+                print("COMMAND:", command)
+                result = subprocess.run(command, shell=True, capture_output=True, text=True)
+                print("STDOUT:", result.stdout)
+                print("STDERR:", result.stderr)
+                if result.returncode == 0:
+                    files_converted += 1
+                else:
+                    print(f"Failed: {filename}")
+
+            messagebox.showinfo("Done", f"Converted {files_converted} files to audio.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Conversion failed: {e}")
+
+    def split_file(self):
+        txt_path = self.txt_path.get()
+        try:
+            words_per_file = int(self.words_entry.get())
+            if not 1 <= words_per_file <= 100000:
                 raise ValueError
         except ValueError:
-            messagebox.showerror("Error", "Invalid speed/pause values")
+            messagebox.showerror("Error", "Enter a valid number between 1 and 100000 for words per file.")
             return
 
-        # Get selected voice
-        voice_idx = self.voice_combo.current()
-        if voice_idx == -1:
-            messagebox.showerror("Error", "Select a voice first")
+        if not os.path.isfile(txt_path):
+            messagebox.showerror("Error", "Selected text file does not exist.")
             return
-        model_path = VOICES[voice_idx][1].encode('utf-8')
 
-        # Get paths
-        input_path = self.input_path.get().encode('utf-8')
-        output_path = self.output_path.get().encode('utf-8')
+        try:
+            with open(txt_path, "r", encoding="utf-8") as f:
+                words = f.read().split()
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not read file:\n{e}")
+            return
 
-        # Call C conversion function
-        tts_lib.convertCustom(
-            c_char_p(model_path),
-            c_char_p(input_path),
-            c_char_p(output_path),
-            c_double(speed),
-            c_double(pause)
-        )
-        messagebox.showinfo("Info", "Conversion completed!")
+        dir_name = os.path.dirname(txt_path)
+        base_name = os.path.basename(txt_path)
+        base, ext = os.path.splitext(base_name)
+        if ext.lower() == ".txt":
+            ext = ".txt"
+        else:
+            ext = ""
+
+        file_idx = 100
+        total_words = len(words)
+        files_created = 0
+        try:
+            for i in range(0, total_words, words_per_file):
+                chunk_words = words[i:i+words_per_file]
+                out_filename = f"{base}__{file_idx}{ext}"
+                out_path = os.path.join(dir_name, out_filename)
+                with open(out_path, "w", encoding="utf-8") as out_file:
+                    out_file.write(" ".join(chunk_words))
+                file_idx += 1
+                files_created += 1
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not write split file:\n{e}")
+            return
+
+        messagebox.showinfo("Success", f"File split into {files_created} files.")
+
+
+    def replace_phrases_in_file(self):
+        txt_path = self.txt_path.get()
+        if not os.path.isfile(txt_path):
+            messagebox.showerror("Error", "Selected text file does not exist.")
+            return
+
+        try:
+            with open(txt_path, "r", encoding="utf-8") as f:
+                text = f.read()
+            # Replace all phrases
+            for old, new in WORDS_TO_REPLACE:
+                text = text.replace(old, new)
+            # Build output path
+            base, ext = os.path.splitext(txt_path)
+            if ext.lower() == ".txt":
+                out_path = f"{base}_quick_replace.txt"
+            else:
+                out_path = f"{txt_path}_quick_replace.txt"
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(text)
+            messagebox.showinfo("Success", f"File saved as:\n{out_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error processing file:\n{e}")
+
 
     def generate_samples(self):
         try:
-            # Call C function directly
-            tts_lib.generate_voice_samples()
-            messagebox.showinfo("Info", "Voice samples generated in output/samples")
+            project_root = get_project_root(self)
+            input_path = os.path.join(project_root, "input", "DO NOT DELETE", "DO NOT DELETE.txt")
+            output_dir = os.path.join(project_root, "output", "samples")
+            os.makedirs(output_dir, exist_ok=True)
+            length_scales = [0.6, 0.7, 0.8, 0.9, 1.00]
+            sentence_silences = [0.05, 0.1, 0.15, 0.2, 0.25, 0.30]
+
+            for display_name, model_relpath in VOICES:
+                # Only generate for English voices as in C code
+                if not display_name.startswith("en_"):
+                    continue
+                model_path = os.path.join(project_root, model_relpath)
+                base_model = os.path.splitext(os.path.basename(model_path))[0]
+                for ls in length_scales:
+                    for ss in sentence_silences:
+                        output_file = f"{base_model}_ls{ls:.2f}_ss{ss:.2f}.wav"
+                        output_path = os.path.join(output_dir, output_file)
+                        command = (
+                            f"bash -c 'MSYS2_ARG_CONV_EXCL=\"*\" cat \"{input_path}\" | "
+                            f"\"{project_root}/piper_win/piper.exe\" "
+                            f"--model \"{model_path}\" --length_scale {ls:.2f} --sentence_silence {ss:.2f} "
+                            f"--output_file \"{output_path}\""
+                        )
+                        print(f"Executing: {command}")
+                        result = subprocess.run(command, shell=True)
+                        if result.returncode != 0:
+                            print(f"ERROR generating {output_path}")
+
+            messagebox.showinfo("Done", "Voice samples generated in output/samples.")
         except Exception as e:
-            messagebox.showerror("Error", f"Sample generation failed: {str(e)}")
+            messagebox.showerror("Error", f"Sample generation failed: {e}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
